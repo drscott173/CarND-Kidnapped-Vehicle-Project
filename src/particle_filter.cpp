@@ -4,7 +4,7 @@
  *  Created on: Dec 12, 2016
  *  Modified on: May 6, 2017
  *      Author: Tiffany Huang
- *      Student: Scott Penberthy
+ *      Student: Scott Penberthy  <scott.penberthy@gmail.com>
  */
 
 #include <random>
@@ -237,17 +237,17 @@ void ParticleFilter::resample() {
 
 	// Use a discrete distribution to pick particles and copy them
 	// into a new selection.
-    discrete_distribution<int> d(weights.begin(), weights.end());
-    for (int i=0; i < num_particles; i++) {
-    	int index = d(gen);                // pick next random index
-    	Particle p, p0 = particles[index]; // copy the chosen particle
-    	p.x = p0.x;
-    	p.y = p0.y;
-    	p.weight = 1.0;
-    	p.theta = p0.theta;
-    	sample.push_back(p);
-    }
-    particles = sample;
+	discrete_distribution<int> d(weights.begin(), weights.end());
+	for (int i=0; i < num_particles; i++) {
+		int index = d(gen);                // pick next random index
+		Particle p, p0 = particles[index]; // copy the chosen particle
+		p.x = p0.x;
+		p.y = p0.y;
+		p.weight = 1.0;
+		p.theta = p0.theta;
+		sample.push_back(p);
+	}
+	particles = sample;
 }
 
 void ParticleFilter::write(std::string filename) {
