@@ -32,7 +32,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	// Add random Gaussian noise to each particle.
 
 	num_particles = 16;
-	srand(42);
+	srand(42);                              // But of course, 42.
 
 	default_random_engine gen;
 	normal_distribution<double> N_x(0, std[0]);
@@ -41,7 +41,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 
 	for (int i=0; i < num_particles; i++) {
 		Particle p;
-		float nx = N_x(gen)*(i > 0);         // we should use the
+		float nx = N_x(gen)*(i > 0);         // we should use the original
 		float ny = N_y(gen)*(i > 0);         // reading we are given, without noise,
 		float ntheta = N_theta(gen)*(i > 0); // as the first particle 0
 
@@ -103,14 +103,14 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
 	// Find the predicted measurement that is closest to each observed measurement and assign the
 	//   observed measurement to this particular landmark.
-
 	LandmarkObs chosen;
 	double best;
 	bool first;
 
-	// Loop through observations.  For each one, check what we
-	// predict we should observe for landmarks within range.
-	// Find the closest fit and call that landmark our own.
+	// Loop through observations.  For each one, loop
+	// through our *predicted* observations for all map
+	// landmarks within range.  Find the closest match,
+	// then call that landmark our own.
 	for (LandmarkObs &obs: observations) {
 		first = true;
 		float x0 = obs.x;  // a register for speed
@@ -138,26 +138,23 @@ vector<LandmarkObs> predict_observations(Particle p, double range, Map map_landm
 	// assuming the particle is at our origin (x0,y0) in map space,
 	// heading at th0.
 	vector<LandmarkObs> predicted;
-
-	float x0 = p.x;
+	float x0 = p.x;   // remember our particle info for speed
 	float y0 = p.y;
 	float th0 = p.theta;
 	for (Map::single_landmark_s m: map_landmarks.landmark_list) {
-		LandmarkObs obs;
-
-		obs.id = m.id_i;
-
-		float pi = M_PI;
 		float dx = m.x_f - x0;
 		float dy = m.y_f - y0;
 		float r = sqrt(dx*dx+dy*dy);
 
 		if (r < range) {
+			// Within range, estimate what we should observe
+			// for this landmark in local particle space.
+			LandmarkObs obs;
 			float beta = atan2(-dy, dx);  // angle of vector in map space
-			float alpha = beta+th0;  // angle of vector in particle space, angles grow cw
-
-			obs.x = r*cos(alpha); // guess our local observation x,y in particle space
+			float alpha = beta+th0;       // angle of vector in particle space
+			obs.x = r*cos(alpha);         // guess x,y in particle space
 			obs.y = -r*sin(alpha);
+			obs.id = m.id_i;              // remember our landmark
 			predicted.push_back(obs);
 		}
 	}
@@ -168,18 +165,12 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		std::vector<LandmarkObs> observations, Map map_landmarks) {
 	// Update the weights of each particle using a mult-variate Gaussian distribution. You can read
 	// more about this distribution here: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
+	double total_p = 0.0;            // total, relative probability mass for a particle
+	float sx2 = std_landmark[0];     // noise in x
+	float sy2 = std_landmark[1];     // noise in y
+	float a = 1.0/(2.0*M_PI*sx2*sy2);  // scalar for multivariate guassian
 
-	default_random_engine gen;
-	normal_distribution<double> N_x(0, std_landmark[0]);
-	normal_distribution<double> N_y(0, std_landmark[1]);
-
-	double total_p = 0.0;
-	float pi = M_PI;
-	float sx2 = std_landmark[0];  // noise in x
-	float sy2 = std_landmark[1];  // noise in y
-	float a = 1.0/(2.0*pi*sx2*sy2); // scalar for multivariate guassian
-
-	sx2 = 2*sx2*sx2; // now squared, doubled for our multivariate formulae
+	sx2 = 2*sx2*sx2; // now squared, doubled for our multivariate Gaussian
 	sy2 *= 2*sy2*sy2;
 
 	for (Particle &p: particles) {
