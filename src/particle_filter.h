@@ -35,9 +35,9 @@ class ParticleFilter {
 	// Vector of weights of all particles
 	std::vector<double> weights;
 	
-	std::vector<LandmarkObs> predict_observations(Particle p, double range, Map map_landmarks);
+	//std::vector<LandmarkObs> predict_observations(Particle p, double range, Map map_landmarks);
 
-	void show_particles();
+	//void show_particles();
 
 
 public:

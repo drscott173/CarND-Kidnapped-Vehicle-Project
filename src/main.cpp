@@ -23,8 +23,6 @@ int main() {
 	double max_translation_error = 1; // Max allowable translation error to pass [m]
 	double max_yaw_error = 0.05; // Max allowable yaw error [rad]
 
-
-
 	// Start timer.
 	int start = clock();
 	
@@ -91,7 +89,7 @@ int main() {
 			n_x = N_x_init(gen);
 			n_y = N_y_init(gen);
 			n_theta = N_theta_init(gen);
-			pf.init(gt[i].x + 0*n_x, gt[i].y + 0*n_y, gt[i].theta + 0*n_theta, sigma_pos);
+			pf.init(gt[i].x + n_x, gt[i].y + n_y, gt[i].theta + n_theta, sigma_pos);
 		}
 		else {
 			// Predict the vehicle's next state (noiseless).
@@ -101,8 +99,8 @@ int main() {
 		vector<LandmarkObs> noisy_observations;
 		LandmarkObs obs;
 		for (int j = 0; j < observations.size(); ++j) {
-			n_x = 0*N_obs_x(gen);
-			n_y = 0*N_obs_y(gen);
+			n_x = N_obs_x(gen);
+			n_y = N_obs_y(gen);
 			obs = observations[j];
 			obs.x = obs.x + n_x;
 			obs.y = obs.y + n_y;
